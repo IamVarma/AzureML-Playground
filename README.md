@@ -1,2 +1,2 @@
 # AzureML-Playground
-Sample scripts and demos for AzureML Service
+Sample scripts and demos for AzureML Services

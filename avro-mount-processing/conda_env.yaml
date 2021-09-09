@@ -1,0 +1,12 @@
+# Packages should have explicit versions 
+# For demo purposes we let them loose
+# Also note the azureml-defaults package mentioned in  https://docs.microsoft.com/en-us/azure/machine-learning/concept-environments#types-of-environments
+name: custom-env
+dependencies:
+  - python=3.6
+  - scikit-learn
+  - pip
+  - pip:
+    - azureml-defaults
+    - pandas
+    - fastavro

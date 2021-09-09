@@ -3,7 +3,6 @@
 
 #!pip install --upgrade azureml-sdk azureml-dataprep matplotlib
 
-#Get AzureML Workspace config
 from azureml.core import Workspace, Dataset
 import pandas as pd
 import argparse
@@ -11,25 +10,20 @@ import azureml.core
 from azureml.core import Run
 import os
 
-
+#Get the run context of this run and access the dataset using named inputs
 run = Run.get_context()
 raw_avro_dataset = run.input_datasets['input_dataset']
 
+#Process the arguments/parameters passed to the pipeline
 parser = argparse.ArgumentParser()
 parser.add_argument('--minute', type=str, dest='minute_filter', help='path to saved model file')
 args = parser.parse_args()
 
 
-#Avro files location pre-registered as a files dataset. Ensure the dataset path is of the format folder/** to pick up all partitions and folders inside.
-#dataset_name="eventhub-capture-avro"
-#dataset = Dataset.get_by_name(workspace, name=dataset_name)
-#print(dataset.name)
-
-# mount dataset manually instead of using
-# with dataset.mount() as mount_context:
-
+# mount dataset to the compute nodes
 mount_context=raw_avro_dataset.mount()
 mount_context.start()
+
 # See where we mounted the file dataset
 print(mount_context.mount_point)
 # List files in there
@@ -41,7 +35,7 @@ dataset_mount_folder = mount_context.mount_point
 #for root,d_names,f_names in os.walk(dataset_mount_folder):
 #	print(root, d_names, f_names)
 
-print(args.minute_filter)
+print("Filter for this run: " + args.minute_filter)
 
 filtered_files = []
 
@@ -68,6 +62,7 @@ for f_avro in filtered_files:
 print(df.head(2))
 print(df.shape)
 
+#Process the dataframe and register as new dataset. 
 
 # Unmount dataset
 mount_context.stop()

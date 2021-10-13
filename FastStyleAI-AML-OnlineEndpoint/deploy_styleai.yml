@@ -1,0 +1,27 @@
+$schema: https://azuremlschemas.azureedge.net/latest/managedOnlineEndpoint.schema.json
+name: styleai-local-endpoint
+type: online
+auth_mode: key
+traffic:
+  blue: 100
+
+deployments:
+  #blue deployment
+  - name: blue
+    code_configuration:
+      code: 
+        local_path: ./score/
+      scoring_script: score.py
+    environment: 
+      name: tf-styleai-env
+      version: 1
+      path: .
+      conda_file: conda_env.yml
+      docker:
+          image: mcr.microsoft.com/azureml/tensorflow-2.4-ubuntu18.04-py37-cuda11.0.3-gpu-inference:latest
+    instance_type: Standard_F4s_v2
+    scale_settings:
+      scale_type: manual
+      instance_count: 1
+      min_instances: 1
+      max_instances: 1

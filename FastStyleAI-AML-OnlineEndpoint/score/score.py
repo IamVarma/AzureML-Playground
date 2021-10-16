@@ -13,12 +13,15 @@ import tensorflow as tf
 import tensorflow_hub as hub
 from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
 
+from azureml.contrib.services.aml_request import AMLRequest, rawhttp
+from azureml.contrib.services.aml_response import AMLResponse
+
 print("TF Version: ", tf.__version__)
 print("TF-Hub version: ", hub.__version__)
 print("Eager mode enabled: ", tf.executing_eagerly())
 print("GPU available: ", tf.test.is_gpu_available())
 
-
+## Ref Code for FastStyle AI - https://colab.research.google.com/github/tensorflow/hub/blob/master/examples/colab/tf2_arbitrary_image_stylization.ipynb
 
 def init():
 
@@ -26,8 +29,8 @@ def init():
     
     global storage_url
     global storage_sas
-    storage_url = 'https://XYZ.blob.core.windows.net/'
-    storage_sas = 'SASToken'
+    storage_url = 'https://xyz.blob.core.windows.net/'
+    storage_sas = 'SAS Token'
 
     
     blob_service_client = BlobServiceClient(account_url=storage_url, credential=storage_sas) 
@@ -83,16 +86,33 @@ def init():
     global style_image_urls
     style_image_urls = ['https://mlopsvarmaamlsa.blob.core.windows.net/style-images/Amadeo_de_Souza-Cardoso_1915.jpg',
     'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/Derkovits_Gyula_Taligas_1920.jpg',
+   'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/Derkovits_Gyula_Woman_head_1922.jpg',
+    'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/Edvard_Munch_1893_The_Scream.jpg',
+    'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/JMW_Turner_Nantes_from_the_Ile_Feydeau.jpg',
     'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/Derkovits_Gyula_Woman_head_1922.jpg',
     'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/Edvard_Munch_1893_The_Scream.jpg',
     'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/JMW_Turner_Nantes_from_the_Ile_Feydeau.jpg',
     'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/Large_bonfire.jpg',
-    'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/Les_Demoiselles_dAvignon.jpg',
+      'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/Les_Demoiselles_dAvignon.jpg',
+    'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/Pablo_Picasso_1911_Still_Life_with_a_Bottle_of_Rum.jpg',
+    'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/Pablo_Picasso.jpg'
+     ]
+
+
+    ''' 'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/Derkovits_Gyula_Woman_head_1922.jpg',
+    'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/Edvard_Munch_1893_The_Scream.jpg',
+    'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/JMW_Turner_Nantes_from_the_Ile_Feydeau.jpg',
+    'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/Large_bonfire.jpg',
+    'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/Derkovits_Gyula_Woman_head_1922.jpg',
+    'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/Edvard_Munch_1893_The_Scream.jpg',
+    'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/JMW_Turner_Nantes_from_the_Ile_Feydeau.jpg',
+    'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/Large_bonfire.jpg',
+      'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/Les_Demoiselles_dAvignon.jpg',
     'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/Pablo_Picasso_1911_Still_Life_with_a_Bottle_of_Rum.jpg',
     'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/Pablo_Picasso.jpg',
     'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/Still_life_1913_Amadeo_Souza-Cardoso.jpg',
     'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/The_Great_Wave_off_Kanagawa.jpg',
-    'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/Van_Gogh_Starry_Night.jpg']
+    'https://mlopsvarmaamlsa.blob.core.windows.net/style-images/Van_Gogh_Starry_Night.jpg'''
 
 
     global hub_module
@@ -101,11 +121,17 @@ def init():
 
     logging.info("Init complete")
 
-def run(raw_data):
+@rawhttp
+def run(request):
 
     logging.info("Request received")
+    print("Request: [{0}]".format(request))
+    #data = json.loads(request)["image_urls"]'''
+    
+    data = json.loads(request.get_data())["image_urls"]) 
+    print(data)
 
-    data = json.loads(raw_data)["image_urls"]
+
     content_image_url = data[0][0]
     print(content_image_url)
     
@@ -148,6 +174,12 @@ def run(raw_data):
 
     logging.info("Request processed")
 
+    if request.method == 'POST':
 
+        print("POST")
+        resp = AMLResponse(response_urls,200,json_str=True)
+        resp.headers['Access-Control-Allow-Origin'] = "*"
 
-    return response_urls
+    print(resp.headers)
+
+    return resp

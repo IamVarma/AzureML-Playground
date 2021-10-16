@@ -13,7 +13,7 @@ deployments:
         local_path: ./score/
       scoring_script: score.py
     environment: 
-      name: tf-styleai-env
+      name: tf-styleai-envnew3
       version: 1
       path: .
       conda_file: conda_env.yml
@@ -25,3 +25,5 @@ deployments:
       instance_count: 1
       min_instances: 1
       max_instances: 1
+    request_settings:
+      request_timeout_ms: 35000

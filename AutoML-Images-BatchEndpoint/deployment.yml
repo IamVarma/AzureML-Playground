@@ -1,0 +1,25 @@
+$schema: https://azuremlschemas.azureedge.net/latest/batchDeployment.schema.json
+name: images-batch-deployment
+endpoint_name: auto-images-batchendp
+#provide the ModelID:Version (e.g azureml:model1:1) that's registered from the AutoML for Images Run or a manually registered model.pt file
+model: azureml:automl-bruv-model:1
+code_configuration:
+  code:
+    local_path: ./score
+  scoring_script: automl-images-score.py
+environment:
+  conda_file: ./environment/conda_env.yml
+  image: mcr.microsoft.com/azureml/openmpi3.1.2-ubuntu18.04:latest
+#provide compute cluster name in the workspace, CPU/GPU, e.g azureml:clustername
+compute: azureml:AutoML-GPU
+resources:
+  instance_count: 1
+max_concurrency_per_instance: 2
+mini_batch_size: 10
+output_action: append_row
+output_file_name: predictions.csv
+retry_settings:
+  max_retries: 3
+  timeout: 30
+error_threshold: -1
+logging_level: info

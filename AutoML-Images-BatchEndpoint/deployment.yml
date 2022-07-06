@@ -11,7 +11,7 @@ environment:
   conda_file: ./environment/conda_env.yml
   image: mcr.microsoft.com/azureml/openmpi3.1.2-ubuntu18.04:latest
 #provide compute cluster name in the workspace, CPU/GPU, e.g azureml:clustername
-compute: azureml:AutoML-GPU
+compute: azureml:cpu-cluster
 resources:
   instance_count: 1
 max_concurrency_per_instance: 2

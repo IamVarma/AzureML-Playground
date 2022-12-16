@@ -1,0 +1,17 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
+code: src
+command: >- 
+  python -m pip install 'git+https://github.com/facebookresearch/detectron2.git' wget &&
+  python main.py --data_path ${{inputs.data_path}}
+inputs:
+  data_path: 
+    type: uri_folder
+    path: azureml:treeai_dataset:1
+    mode: ro_mount
+environment: azureml:AzureML-ACPT-pytorch-1.12-py39-cuda11.6-gpu@latest
+compute: azureml:compute-cluster-gpu
+display_name: detectron2-azureml
+experiment_name: detectron2-azureml
+description: Train a neural network with PyTorch and Detectron2.
+
+#

@@ -1,0 +1,40 @@
+$schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
+type: pipeline
+
+description: Train a Instance Segmentation model with PyTorch-Detectron2, and register the model.
+
+display_name: nyc-taxi-pipeline-example
+experiment_name: nyc-taxi-pipeline-example
+
+inputs:
+  coco_data_path: 
+    type: uri_folder
+    path: azureml:treeai_dataset:1
+    mode: ro_mount
+outputs:
+  model_output: 
+    type: uri_folder
+
+settings:
+  default_compute: azureml:varmag1
+
+jobs:
+
+  train_model_job:
+    type: command
+    inputs:
+      data_path: ${{parent.inputs.coco_data_path}}
+    outputs:
+      model_path: ${{parent.outputs.model_output}} 
+    code: ./src
+    environment: azureml:AzureML-ACPT-pytorch-1.12-py39-cuda11.6-gpu@latest
+    command: >- 
+      python -m pip install 'git+https://github.com/facebookresearch/detectron2.git' wget &&
+      python main.py --data_path ${{inputs.data_path}} --model_output ${{outputs.model_path}}
+
+  register_model_job:
+    type: command
+    component: file:./register-model-component.yml
+    inputs:
+      model_input_path: ${{parent.jobs.train_model_job.outputs.model_path}}
+      model_base_name: detectron2-model

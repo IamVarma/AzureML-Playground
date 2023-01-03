@@ -2,16 +2,19 @@ $schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
 code: src
 command: >- 
   python -m pip install 'git+https://github.com/facebookresearch/detectron2.git' wget &&
-  python main.py --data_path ${{inputs.data_path}}
+  python main.py --data_path ${{inputs.data_path}} --model_output ${{outputs.output_folder}}
 inputs:
   data_path: 
     type: uri_folder
     path: azureml:treeai_dataset:1
     mode: ro_mount
+outputs:
+  output_folder: 
+    type: custom_model # mlflow_model,custom_model, triton_model
 environment: azureml:AzureML-ACPT-pytorch-1.12-py39-cuda11.6-gpu@latest
-compute: azureml:compute-cluster-gpu
+compute: azureml:varmag1
 display_name: detectron2-azureml
 experiment_name: detectron2-azureml
-description: Train a neural network with PyTorch and Detectron2.
+description: Train a Instance Segmentation model with PyTorch and Detectron2.
 
 #

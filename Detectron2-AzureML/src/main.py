@@ -3,6 +3,7 @@
 import sys, os, distutils.core
 import argparse
 import wget
+import mlflow
 import torch, detectron2
 from detectron2.utils.logger import setup_logger
 setup_logger()
@@ -18,6 +19,7 @@ print("detectron2:", detectron2.__version__)
 from detectron2 import model_zoo
 from detectron2.engine import DefaultPredictor
 from detectron2.engine import DefaultTrainer
+from detectron2.checkpoint import DetectionCheckpointer
 from detectron2.config import get_cfg
 from detectron2.data import MetadataCatalog, DatasetCatalog
 from detectron2.data.datasets import register_coco_instances
@@ -26,12 +28,16 @@ from detectron2.data import DatasetCatalog, MetadataCatalog
 # define functions
 def main(args):
 
+    mlflow.start_run()
+
     data_path = args.data_path
+    model_output_path = args.model_output
     print(data_path)
     print(os.listdir(data_path))
-    train_detectron2(data_path)
 
-def train_detectron2(data_path):
+    train_detectron2(data_path, model_output_path)
+
+def train_detectron2(data_path, model_output_path):
 
     #register COCO Dataset 
     register_coco_instances("train-data", {}, os.path.join(data_path, "p1_s4_coco_fix1.json"), data_path)
@@ -41,7 +47,7 @@ def train_detectron2(data_path):
 
     #base models download
     download_basemodels()
-    
+
     cfg = get_cfg()
     cfg.merge_from_file("configs/mask_rcnn_R_50_FPN_3x.yaml")
     cfg.DATASETS.TRAIN = ("train-data",)
@@ -62,6 +68,10 @@ def train_detectron2(data_path):
     trainer.resume_or_load(resume=False)
     trainer.train()
 
+    #checkpointer = DetectionCheckpointer(trainer.model, save_dir='./outputs')
+    torch.save(trainer.model.state_dict(), os.path.join(model_output_path, "detectron2_model.pth"))
+    print(model_output_path)
+
 def download_basemodels():
     #  download base models
     
@@ -74,6 +84,7 @@ def parse_args():
     # setup arg parser
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_path", type=str)
+    parser.add_argument("--model_output", type=str)
     args = parser.parse_args()
 
     # return args

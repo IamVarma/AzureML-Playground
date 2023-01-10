@@ -43,15 +43,19 @@ def main(args):
     mlflow.set_tracking_uri(tracking_uri)
     mlflow.set_experiment(current_experiment.name)
 
+    mlmodel_path = os.path.join(args.model_input_path, "")
+
+    
     # Get Run ID from model path
     print("Getting model path")
-    mlmodel_path = os.path.join(args.model_input_path, "")
+    
     #os.path.join(args.model_input_path, "")
     runid = ""
     with open(mlmodel_path, "r") as modelfile:
         for line in modelfile:
             if "run_id" in line:
                 runid = line.split(":")[1].strip()
+
 
     # Construct Model URI from run ID extract previously
     model_uri = "runs:/{}/outputs/".format(runid)

@@ -4,16 +4,13 @@ import sys, os, distutils.core
 import argparse
 import wget
 import mlflow
+import mlflow.pytorch
+from azureml.core import Run
+
+
 import torch, detectron2
 from detectron2.utils.logger import setup_logger
 setup_logger()
-
-#verify versions
-TORCH_VERSION = ".".join(torch.__version__.split(".")[:2])
-CUDA_VERSION = torch.__version__.split("+")[-1]
-print("torch: ", TORCH_VERSION, "; cuda: ", CUDA_VERSION)
-print("detectron2:", detectron2.__version__)
-
 
 # import some common detectron2 utilities
 from detectron2 import model_zoo
@@ -25,10 +22,21 @@ from detectron2.data import MetadataCatalog, DatasetCatalog
 from detectron2.data.datasets import register_coco_instances
 from detectron2.data import DatasetCatalog, MetadataCatalog
 
+#verify versions
+TORCH_VERSION = ".".join(torch.__version__.split(".")[:2])
+CUDA_VERSION = torch.__version__.split("+")[-1]
+print("torch: ", TORCH_VERSION, "; cuda: ", CUDA_VERSION)
+print("detectron2:", detectron2.__version__)
+
 # define functions
 def main(args):
 
-    mlflow.start_run()
+    current_experiment = Run.get_context().experiment
+    tracking_uri = current_experiment.workspace.get_mlflow_tracking_uri()
+    print("tracking_uri: {0}".format(tracking_uri))
+    mlflow.set_tracking_uri(tracking_uri)
+    mlflow.set_experiment(current_experiment.name)
+    mlflow.pytorch.autolog()
 
     data_path = args.data_path
     model_output_path = args.model_output
@@ -68,8 +76,11 @@ def train_detectron2(data_path, model_output_path):
     trainer.resume_or_load(resume=False)
     trainer.train()
 
+    artifact_path = "detectron2_model"
+    mlflow.pytorch.save_model(trainer.model, model_output_path)
+    #mlflow.register_model(f"file://model", "tree-ai-new")
     #checkpointer = DetectionCheckpointer(trainer.model, save_dir='./outputs')
-    torch.save(trainer.model.state_dict(), os.path.join(model_output_path, "detectron2_model.pth"))
+    #torch.save(trainer.model.state_dict(), os.path.join(model_output_path, "detectron2_model.pth"))
     print(model_output_path)
 
 def download_basemodels():

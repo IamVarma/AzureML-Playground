@@ -8,19 +8,7 @@ jobs:
         steps:
         # checkout the repo
         - name: 'Checkout GitHub Action'
-          uses: actions/checkout@IamVarma-patch-1
-          
-        - name: 'Login via Azure CLI'
-          uses: azure/login@v1
-          with:
-            creds: ${{ secrets.AZURE_CREDENTIALS }}
-        
-        - name: 'Build and push image'
-          uses: azure/docker-login@v1
-          with:
-            login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
-            username: ${{ secrets.REGISTRY_USERNAME }}
-            password: ${{ secrets.REGISTRY_PASSWORD }}
+          uses: actions/checkout@main
+ 
         - run: |
-            docker build -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/inference:${{ github.sha }} -f Detectron2-AzureML/Dockerfile .
-            docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/inference:${{ github.sha }}
+            docker build -t test-inf -f Detectron2-AzureML/Dockerfile .
